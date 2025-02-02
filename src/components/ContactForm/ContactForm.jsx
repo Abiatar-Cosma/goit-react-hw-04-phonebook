@@ -1,17 +1,15 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { nanoid } from 'nanoid';
 import styles from './ContactForm.module.css';
 
-class ContactForm extends Component {
-  state = {
-    name: '',
-    number: '',
-    countryCode: '+40', // Prefix implicit pentru România
-  };
+const ContactForm = ({ onSubmit }) => {
+  const [name, setName] = useState('');
+  const [number, setNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+40'); // Prefix implicit pentru România
 
-  // ✅ Lista de prefixe trebuie definită în interiorul clasei
-  countryCodes = [
+  // Lista de prefixe internaționale
+  const countryCodes = [
     { code: '+40', country: 'RO' },
     { code: '+49', country: 'DE' },
     { code: '+33', country: 'FR' },
@@ -47,83 +45,79 @@ class ContactForm extends Component {
     { code: '+380', country: 'UA' }
   ];
 
-  handleChange = (e) => {
-    const { name, value } = e.target;
-    this.setState({ [name]: value });
-  };
+  // Funcții pentru schimbarea valorilor din formular
+  const handleNameChange = (e) => setName(e.target.value);
+  const handleNumberChange = (e) => setNumber(e.target.value);
+  const handleCountryChange = (e) => setCountryCode(e.target.value);
 
-  handleCountryChange = (e) => {
-    this.setState({ countryCode: e.target.value });
-  };
-
-  handleSubmit = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    const { name, number, countryCode } = this.state;
 
     // ✅ Adăugăm automat prefixul internațional
     const formattedNumber = `${countryCode} ${number.trim().replace(/^0+/, '')}`;
 
-    this.props.onSubmit({ id: nanoid(), name, number: formattedNumber });
-    this.setState({ name: '', number: '' });
+    // ✅ Trimitem datele în componenta părinte
+    onSubmit({ id: nanoid(), name, number: formattedNumber });
+
+    // ✅ Resetăm formularul după trimitere
+    setName('');
+    setNumber('');
+    setCountryCode('+40'); // Resetăm prefixul la cel implicit
   };
 
-  render() {
-    const { name, number, countryCode } = this.state;
+  return (
+    <form onSubmit={handleSubmit} className={styles.form}>
+      <div className={styles.inputGroup}>
+        <label htmlFor="name" className={styles.label}></label>
+        <input
+          type="text"
+          name="name"
+          id="name"
+          placeholder="Enter full name"
+          value={name}
+          onChange={handleNameChange}
+          required
+          className={styles.input}
+        />
+      </div>
 
-    return (
-      <form onSubmit={this.handleSubmit} className={styles.form}>
-        <div className={styles.inputGroup}>
-          <label htmlFor="name" className={styles.label}></label>
+      <div className={styles.inputGroup}>
+        <label htmlFor="number" className={styles.label}></label>
+        <div className={styles.numberInputContainer}>
+          {/* ✅ Dropdown pentru selectarea țării */}
+          <select
+            name="countryCode"
+            value={countryCode}
+            onChange={handleCountryChange}
+            className={styles.select}
+          >
+            {countryCodes.map(({ code, country }) => (
+              <option key={code} value={code}>
+                {country} {code}
+              </option>
+            ))}
+          </select>
+
+          {/* ✅ Input pentru numărul de telefon */}
           <input
-            type="text"
-            name="name"
-            id="name"
-            placeholder="Enter full name"
-            value={name}
-            onChange={this.handleChange}
+            type="tel"
+            name="number"
+            id="number"
+            placeholder="Enter phone number"
+            value={number}
+            onChange={handleNumberChange}
+            pattern="\d{6,15}"
+            title="Phone number must contain only digits."
             required
-            className={styles.input}
+            className={styles.numberInput}
           />
         </div>
+      </div>
 
-        <div className={styles.inputGroup}>
-          <label htmlFor="number" className={styles.label}></label>
-          <div className={styles.numberInputContainer}>
-            {/* ✅ Dropdown pentru selectarea țării */}
-            <select
-              name="countryCode"
-              value={countryCode}
-              onChange={this.handleCountryChange}
-              className={styles.select}
-            >
-              {this.countryCodes.map(({ code, country }) => (
-                <option key={code} value={code}>
-                  {country} {code}
-                </option>
-              ))}
-            </select>
-
-            {/* ✅ Input pentru numărul de telefon */}
-            <input
-              type="tel"
-              name="number"
-              id="number"
-              placeholder="Enter phone number"
-              value={number}
-              onChange={this.handleChange}
-              pattern="\d{6,15}"
-              title="Phone number must contain only digits."
-              required
-              className={styles.numberInput}
-            />
-          </div>
-        </div>
-
-        <button type="submit" className={styles.button}>Add contact</button>
-      </form>
-    );
-  }
-}
+      <button type="submit" className={styles.button}>Add contact</button>
+    </form>
+  );
+};
 
 ContactForm.propTypes = {
   onSubmit: PropTypes.func.isRequired,

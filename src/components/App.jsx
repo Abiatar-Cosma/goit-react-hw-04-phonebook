@@ -6,18 +6,15 @@ import styles from './App.module.css';
 
 const App = () => {
   const [contacts, setContacts] = useState(() => {
-    // Încărcare inițială din localStorage
     const savedContacts = localStorage.getItem('contacts');
     return savedContacts ? JSON.parse(savedContacts) : [];
   });
 
   const [filter, setFilter] = useState('');
 
-  // Salvează contactele doar dacă acestea s-au schimbat efectiv
+  // 🔹 Salvăm în localStorage indiferent dacă lista e goală sau nu
   useEffect(() => {
-    if (contacts.length > 0) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-    }
+    localStorage.setItem('contacts', JSON.stringify(contacts));
   }, [contacts]);
 
   const addContact = (newContact) => {
@@ -37,7 +34,7 @@ const App = () => {
 
   const changeFilter = (e) => setFilter(e.target.value);
 
-  // Optimizare filtrare cu useMemo
+  // 🔹 Optimizare filtrare cu `useMemo`
   const filteredContacts = useMemo(() => {
     const normalizedFilter = filter.toLowerCase();
     return contacts.filter((contact) =>
@@ -64,3 +61,4 @@ const App = () => {
 };
 
 export default App;
+
